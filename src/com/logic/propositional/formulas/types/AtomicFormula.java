@@ -50,6 +50,6 @@ public class AtomicFormula extends Formula {
     }
 
     public boolean equals(Object other) {
-        return super.equals(other) && name == ((AtomicFormula) other).name;
+        return super.equals(other) && new Character(name).equals(((AtomicFormula) other).name);
     }
 }

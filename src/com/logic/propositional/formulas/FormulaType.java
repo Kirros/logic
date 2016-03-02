@@ -6,5 +6,8 @@ package com.logic.propositional.formulas;
 public enum FormulaType {
     ATOMIC,
     CONJUNCTION,
+    DISJUNCTION,
+    IMPLICATION,
+    EQUIVALENCE,
     NEGATION
 }

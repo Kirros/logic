@@ -36,6 +36,24 @@ public class FormulaParserTest {
     }
 
     @Test
+    public void testDisjunction() {
+        if (!testFormula("(A | B)").equals(new AtomicFormula('A').or(new AtomicFormula('B'))))
+            throw new Error("Incorrectly handled disjunction.");
+    }
+
+    @Test
+    public void testImplication() {
+        if (!testFormula("(A - B)").equals(new AtomicFormula('A').imply(new AtomicFormula('B'))))
+            throw new Error("Incorrectly handled implication.");
+    }
+
+    @Test
+    public void testEquivalence() {
+        if (!testFormula("(A = B)").equals(new AtomicFormula('A').equal(new AtomicFormula('B'))))
+            throw new Error("Incorrectly handled equality.");
+    }
+
+    @Test
     public void testComplex() {
         Formula result = testFormula("!(!(A & B) & !C)");
         Formula expected = new AtomicFormula('A').and(new AtomicFormula('B')).not().and(new AtomicFormula('C').not()).not();

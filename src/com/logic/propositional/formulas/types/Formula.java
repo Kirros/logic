@@ -28,6 +28,27 @@ public abstract class Formula {
         return new Conjunction(this, other);
     }
 
+    /**
+     * Factory method for joining two formulas together with disjunction.
+     */
+    public Formula or(Formula other) {
+        return new Disjunction(this, other);
+    }
+
+    /**
+     * Factory method for joining two formulas together with implication.
+     */
+    public Formula imply(Formula other) {
+        return new Implication(this, other);
+    }
+
+    /**
+     * Factory method for joining two formulas together with equivalence.
+     */
+    public Formula equal(Formula other) {
+        return new Equivalence(this, other);
+    }
+
     @Override
     public String toString() {
         return "Should not see this.";
@@ -64,6 +85,11 @@ public abstract class Formula {
     @Override
     public boolean equals(Object other) {
         return other instanceof Formula && type == ((Formula) other).type;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 
     /**
