@@ -1,12 +1,12 @@
 package com.logic.propositional.formulas.types;
 
 import com.logic.propositional.formulas.FormulaType;
+import com.logic.propositional.formulas.Value;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Atomic logical formula
+ * Atomic logical formula representing proposition.
  */
 public class AtomicFormula extends Formula {
 
@@ -28,13 +28,22 @@ public class AtomicFormula extends Formula {
     }
 
     @Override
-    public Set<Character> getAllAtomicFormulas() {
-        Set<Character> result = new HashSet<>();
-        result.add(name);
+    public Value evaluate(Map<AtomicFormula, Value> valueMap) {
+        return valueMap.get(this);
+    }
+
+    @Override
+    public List<AtomicFormula> getAllAtomicFormulas() {
+        List<AtomicFormula> result = new ArrayList<>();
+        result.add(this);
         return result;
     }
 
-    public boolean equals(Formula other) {
+    public static Comparator<AtomicFormula> getComparator() {
+        return (formula1, formula2) -> Character.compare(formula1.name, formula2.name);
+    }
+
+    public boolean equals(Object other) {
         return super.equals(other) && name == ((AtomicFormula) other).name;
     }
 }

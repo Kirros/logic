@@ -1,8 +1,10 @@
 package com.logic.propositional.formulas.types;
 
 import com.logic.propositional.formulas.FormulaType;
+import com.logic.propositional.formulas.Value;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents and relationship between two formulas
@@ -30,13 +32,30 @@ public class Conjunction extends Formula {
     }
 
     @Override
-    public Set<Character> getAllAtomicFormulas() {
-        Set<Character> result = subformula1.getAllAtomicFormulas();
-        result.addAll(subformula2.getAllAtomicFormulas());
+    public Value evaluate(Map<AtomicFormula, Value> valueMap) {
+        if (subformula1.evaluate(valueMap) == Value.TRUE && subformula2.evaluate(valueMap) == Value.TRUE)
+            return Value.TRUE;
+        else
+            return Value.FALSE;
+    }
+
+    @Override
+    public List<AtomicFormula> getAllAtomicFormulas() {
+        List<AtomicFormula> result = subformula1.getAllAtomicFormulas();
+        List<AtomicFormula> toBeAdded = subformula2.getAllAtomicFormulas();
+
+        for (AtomicFormula atomicFormula : toBeAdded) {
+            if (result.contains(atomicFormula))
+                continue;
+
+            result.add(atomicFormula);
+        }
+
+        result.sort(AtomicFormula.getComparator());
         return result;
     }
 
-    public boolean equals(Formula other) {
+    public boolean equals(Object other) {
         return super.equals(other) &&
                 ((subformula1.equals(((Conjunction) other).subformula1) && subformula2.equals(((Conjunction) other).subformula2)) ||
                         (subformula1.equals(((Conjunction) other).subformula2) && subformula2.equals(((Conjunction) other).subformula1)));

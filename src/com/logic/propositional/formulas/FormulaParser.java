@@ -21,6 +21,9 @@ public class FormulaParser {
         this.originalFormulaString = formulaString.replaceAll("!([a-zA-Z])", "!($1)").replaceAll("\\s", "");
     }
 
+    /**
+     * @return Formula object represented by given description
+     */
     public Formula getFormula() {
         return process(originalFormulaString);
     }
