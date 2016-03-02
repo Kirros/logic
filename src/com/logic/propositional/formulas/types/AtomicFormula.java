@@ -1,5 +1,6 @@
 package com.logic.propositional.formulas.types;
 
+import com.logic.propositional.formulas.Evaluation;
 import com.logic.propositional.formulas.FormulaType;
 import com.logic.propositional.formulas.Value;
 
@@ -28,8 +29,13 @@ public class AtomicFormula extends Formula {
     }
 
     @Override
-    public Value evaluate(Map<AtomicFormula, Value> valueMap) {
-        return valueMap.get(this);
+    public List<Formula> getAllSubformulas() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public Value evaluate(Evaluation evaluation) {
+        return evaluation.get(this);
     }
 
     @Override

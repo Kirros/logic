@@ -29,6 +29,19 @@ public class FormulaMethodTest {
     }
 
     @Test
+    public void testAllSubformulas() {
+        List<Formula> expected = new ArrayList<>();
+        expected.add(NEGATION);
+        expected.add(new AtomicFormula('B').not());
+        expected.add(ATOMIC.not().and(new AtomicFormula('B').not()));
+
+        List<Formula> result = COMPLEX_1.getAllSubformulas();
+
+        if (!expected.equals(result))
+            throw new Error("Got " + result + " should get this list of subformulas " + expected);
+    }
+
+    @Test
     public void testEquals() {
         if (!NEGATION.equals(new AtomicFormula('A').not()))
             throw new Error(NEGATION + " and " + new AtomicFormula('A').not() + " should be equal");
@@ -55,15 +68,15 @@ public class FormulaMethodTest {
 
     @Test
     public void testTruthTable() {
-        String expected = "A\tB\tC\t¬(¬(A ∧ B) ∧ ¬C)\n" +
-                "0\t0\t0\t0\n" +
-                "0\t0\t1\t1\n" +
-                "0\t1\t0\t0\n" +
-                "0\t1\t1\t1\n" +
-                "1\t0\t0\t0\n" +
-                "1\t0\t1\t1\n" +
-                "1\t1\t0\t1\n" +
-                "1\t1\t1\t1";
+        String expected = "A\t|\tB\t|\tC\t|\t(A ∧ B)\t|\t¬(A ∧ B)\t|\t¬C\t|\t(¬(A ∧ B) ∧ ¬C)\t|\t¬(¬(A ∧ B) ∧ ¬C)\t|\t\n" +
+                "0\t|\t0\t|\t0\t|\t      0\t|\t       1\t|\t 1\t|\t              1\t|\t               0\t|\t\n" +
+                "0\t|\t0\t|\t1\t|\t      0\t|\t       1\t|\t 0\t|\t              0\t|\t               1\t|\t\n" +
+                "0\t|\t1\t|\t0\t|\t      0\t|\t       1\t|\t 1\t|\t              1\t|\t               0\t|\t\n" +
+                "0\t|\t1\t|\t1\t|\t      0\t|\t       1\t|\t 0\t|\t              0\t|\t               1\t|\t\n" +
+                "1\t|\t0\t|\t0\t|\t      0\t|\t       1\t|\t 1\t|\t              1\t|\t               0\t|\t\n" +
+                "1\t|\t0\t|\t1\t|\t      0\t|\t       1\t|\t 0\t|\t              0\t|\t               1\t|\t\n" +
+                "1\t|\t1\t|\t0\t|\t      1\t|\t       0\t|\t 1\t|\t              0\t|\t               1\t|\t\n" +
+                "1\t|\t1\t|\t1\t|\t      1\t|\t       0\t|\t 0\t|\t              0\t|\t               1\t|\t\n";
         String result = COMPLEX_2.getTruthTable().toString();
 
         if (!expected.equals(result))

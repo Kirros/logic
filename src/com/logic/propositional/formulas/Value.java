@@ -5,27 +5,18 @@ package com.logic.propositional.formulas;
  */
 public enum Value {
     TRUE,
-    FALSE,
-    UNASSIGNED;
+    FALSE;
 
-    public static Value fromChar(char c) {
-        if (c == '0')
+    /**
+     * Flips TRUE to FALSE and vice versa
+     */
+    public Value flip() {
+        if ("TRUE".equals(this.name()))
             return FALSE;
-        else if (c == '1')
+        else if ("FALSE".equals(this.name()))
             return TRUE;
         else
-            throw new FormulaError("Unknown character to be translated to value " + c);
-    }
-
-    public int toInt() {
-        switch (this.name()) {
-            case "TRUE":
-                return 1;
-            case "FALSE":
-                return 0;
-            default:
-                throw new FormulaError("Cannot translate UNASSIGNED to number");
-        }
+            return this;
     }
 
     @Override

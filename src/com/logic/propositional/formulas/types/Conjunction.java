@@ -1,10 +1,10 @@
 package com.logic.propositional.formulas.types;
 
+import com.logic.propositional.formulas.Evaluation;
 import com.logic.propositional.formulas.FormulaType;
 import com.logic.propositional.formulas.Value;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents and relationship between two formulas
@@ -32,8 +32,24 @@ public class Conjunction extends Formula {
     }
 
     @Override
-    public Value evaluate(Map<AtomicFormula, Value> valueMap) {
-        if (subformula1.evaluate(valueMap) == Value.TRUE && subformula2.evaluate(valueMap) == Value.TRUE)
+    public List<Formula> getAllSubformulas() {
+        List<Formula> result = subformula1.getAllSubformulas();
+        List<Formula> toAdd = subformula2.getAllSubformulas();
+
+        addToSubformulaList(result, subformula1);
+
+        for (Formula formula : toAdd) {
+            addToSubformulaList(result, formula);
+        }
+
+        addToSubformulaList(result, subformula2);
+
+        return result;
+    }
+
+    @Override
+    public Value evaluate(Evaluation evaluation) {
+        if (subformula1.evaluate(evaluation) == Value.TRUE && subformula2.evaluate(evaluation) == Value.TRUE)
             return Value.TRUE;
         else
             return Value.FALSE;

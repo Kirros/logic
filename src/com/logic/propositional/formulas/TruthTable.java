@@ -2,64 +2,57 @@ package com.logic.propositional.formulas;
 
 import com.logic.propositional.formulas.types.AtomicFormula;
 import com.logic.propositional.formulas.types.Formula;
+import com.logic.ui.Table;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents all Truth table of given formula
  */
-public class TruthTable {
-    private final Formula formula;
-    private final List<AtomicFormula> atomicFormulas;
-    private final Map<ValueTuple, Value> truthTable;
+public class TruthTable extends Table<Formula, Value> {
 
     public TruthTable(Formula formula) {
-        this.formula = formula;
+        List<AtomicFormula> atomicFormulas = formula.getAllAtomicFormulas();
+        List<Formula> subformulas = formula.getAllSubformulas();
 
-        this.atomicFormulas = formula.getAllAtomicFormulas();
+        List<Evaluation> evaluations = createAtomicValueColumns(atomicFormulas);
 
-        List<ValueTuple> valueTuples = ValueTuple.getAllTuplesOfSize(atomicFormulas.size());
-        Map<ValueTuple, Value> truthTable = new LinkedHashMap<>();
-
-        for (ValueTuple valueTuple : valueTuples) {
-            truthTable.put(valueTuple, formula.evaluate(createValueMap(atomicFormulas, valueTuple)));
+        for (Formula subformula : subformulas) {
+            List<Value> valueColumn = evaluations.stream().map(subformula::evaluate).collect(Collectors.toList());
+            addColumn(subformula, valueColumn);
         }
 
-        this.truthTable = truthTable;
+        List<Value> valueColumn = evaluations.stream().map(formula::evaluate).collect(Collectors.toList());
+        addColumn(formula, valueColumn);
     }
 
-    private Map<AtomicFormula, Value> createValueMap(List<AtomicFormula> atomicFormulas, ValueTuple valueTuple) {
-        assert atomicFormulas.size() == valueTuple.size();
+    private List<Evaluation> createAtomicValueColumns(List<AtomicFormula> atomicFormulas) {
+        int numberOfLines = new Double(Math.pow(2, atomicFormulas.size())).intValue();
+        int alternation = numberOfLines;
 
-        Map<AtomicFormula, Value> characterValueMap = new HashMap<>();
+        List<Evaluation> evaluations = new ArrayList<>();
 
-        for (int i = 0; i < atomicFormulas.size(); i++) {
-            characterValueMap.put(atomicFormulas.get(i), valueTuple.get(i));
+        for (int i = 0; i < numberOfLines; i++) {
+            evaluations.add(new Evaluation());
         }
-
-        return characterValueMap;
-    }
-
-    @Override
-    public String toString() {
-        if (atomicFormulas.isEmpty())
-            return "";
-
-        StringBuilder result = new StringBuilder();
 
         for (AtomicFormula atomicFormula : atomicFormulas) {
-            result.append(atomicFormula).append('\t');
+            alternation /= 2;
+            Value currentValue = Value.TRUE;
+            List<Value> values = new ArrayList<>();
+
+            for (int i = 0; i < numberOfLines; i++) {
+                if (i % alternation == 0)
+                    currentValue = currentValue.flip();
+
+                values.add(currentValue);
+                evaluations.get(i).add(atomicFormula, currentValue);
+            }
+
+            addColumn(atomicFormula, values);
         }
 
-        result.append(formula.toString());
-        
-        for (ValueTuple valueTuple : truthTable.keySet()) {
-            result.append("\n").append(valueTuple.toString()).append('\t').append(truthTable.get(valueTuple));
-        }
-
-        return result.toString();
+        return evaluations;
     }
 }

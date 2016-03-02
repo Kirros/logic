@@ -1,10 +1,10 @@
 package com.logic.propositional.formulas.types;
 
+import com.logic.propositional.formulas.Evaluation;
 import com.logic.propositional.formulas.FormulaType;
 import com.logic.propositional.formulas.Value;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents negation of original formula
@@ -29,8 +29,15 @@ public class Negation extends Formula {
     }
 
     @Override
-    public Value evaluate(Map<AtomicFormula, Value> valueMap) {
-        if (subformula.evaluate(valueMap) == Value.TRUE)
+    public List<Formula> getAllSubformulas() {
+        List<Formula> result = subformula.getAllSubformulas();
+
+        return addToSubformulaList(result, subformula);
+    }
+
+    @Override
+    public Value evaluate(Evaluation evaluation) {
+        if (subformula.evaluate(evaluation) == Value.TRUE)
             return Value.FALSE;
         else
             return Value.TRUE;

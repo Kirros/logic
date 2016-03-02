@@ -1,12 +1,8 @@
 package com.logic.propositional.formulas.types;
 
-import com.logic.propositional.formulas.FormulaParser;
-import com.logic.propositional.formulas.FormulaType;
-import com.logic.propositional.formulas.TruthTable;
-import com.logic.propositional.formulas.Value;
+import com.logic.propositional.formulas.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents propositional logic formula.
@@ -43,10 +39,15 @@ public abstract class Formula {
     public abstract boolean hasSubformula(Formula other);
 
     /**
-     * Find logical value of formula given values of atomic formulas.
-     * @param valueMap Mapping of values to each name of atomic formula.
+     * Get list of all subformulas in this formula. This function omits atomic subformulas.
      */
-    public abstract Value evaluate(Map<AtomicFormula, Value> valueMap);
+    public abstract List<Formula> getAllSubformulas();
+
+    /**
+     * Find logical value of formula given values of atomic formulas.
+     * @param evaluation Mapping of values to each name of atomic formula.
+     */
+    public abstract Value evaluate(Evaluation evaluation);
 
     /**
      * Returns sorted list of all Atomic formulas used in this formula
@@ -77,5 +78,15 @@ public abstract class Formula {
         FormulaParser parser = new FormulaParser(input);
 
         return parser.getFormula();
+    }
+
+    /**
+     * Method for adding subformulas to lists of subformulas. This will not add Subformulas already present or atomic formulas.
+     */
+    protected List<Formula> addToSubformulaList(List<Formula> subformulas, Formula toBeAdded) {
+        if (toBeAdded.type != FormulaType.ATOMIC && !subformulas.contains(toBeAdded))
+            subformulas.add(toBeAdded);
+
+        return subformulas;
     }
 }
