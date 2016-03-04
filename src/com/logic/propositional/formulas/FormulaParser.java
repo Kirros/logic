@@ -4,6 +4,7 @@ import com.logic.propositional.formulas.types.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * For creating Formulas from string
@@ -25,102 +26,90 @@ public class FormulaParser {
         return process(originalFormulaString);
     }
 
-    private Formula process(String formulaString) {
-        if (formulaString.isEmpty())
-            return null;
+    Formula process(String formulaString) {
+        Stack<FormulaBuilder> formula = new Stack<>();
+        formula.push(new FormulaBuilder());
 
-        int nestingLevel = 0;
-        StringBuilder part = new StringBuilder();
-        List<String> parts = new ArrayList<>();
+        char[] chars = formulaString.toCharArray();
 
-        for (char symbol : formulaString.toCharArray()) {
-            if (symbol == '(')
-                nestingLevel++;
-            else if (symbol == ')')
-                nestingLevel--;
+        for (Character input : chars) {
+            if (Character.isLetter(input))
+                formula.push(formula.pop().addSubformula(new AtomicFormula(input)));
+            else if (input == '(')
+                formula.push(new FormulaBuilder());
+            else if (input == ')') {
+                Formula processedFormula = formula.pop().build();
+                formula.push(formula.pop().addSubformula(processedFormula));
 
-            part.append(symbol);
-
-            if (nestingLevel == 0) {
-                parts.add(part.toString());
-                part = new StringBuilder();
+                if (formula.peek().getFormulaType() == FormulaType.NEGATION) {
+                    processedFormula = formula.pop().build();
+                    formula.push(formula.pop().addSubformula(processedFormula));
+                }
             }
+            else if (input == '!')
+                formula.push(new FormulaBuilder().setFormulaType(FormulaType.NEGATION));
+            else if (input == '&')
+                formula.push(formula.pop().setFormulaType(FormulaType.CONJUNCTION));
+            else if (input == '|')
+                formula.push(formula.pop().setFormulaType(FormulaType.DISJUNCTION));
+            else if (input == '-')
+                formula.push(formula.pop().setFormulaType(FormulaType.IMPLICATION));
+            else if (input == '=')
+                formula.push(formula.pop().setFormulaType(FormulaType.EQUIVALENCE));
         }
 
-        if (nestingLevel != 0)
-            throw new FormulaError(MISSING_BRACKETS_ERROR);
+        return formula.pop().build();
+    }
 
-        if ((parts.contains("&") || parts.contains("|") || parts.contains("-") || parts.contains("=")) && parts.size() <= 5)
-            return processBinaryFunction(parts);
-        else if (parts.get(0).equals("!") && parts.size() == 2)
-            return processNegation(parts);
-        else if (parts.size() == 1) {
-            if (parts.get(0).length() == 1)
-                return processAtomic(parts);
+    private class FormulaBuilder {
+        private FormulaType formulaType;
+        private List<Formula> subformulas = new ArrayList<>();
+
+        FormulaBuilder setFormulaType(FormulaType formulaType) {
+            if (this.formulaType == null)
+                this.formulaType = formulaType;
+            else if (formulaType != this.formulaType)
+                throw new FormulaError(MISSING_BRACKETS_ERROR);
+
+            return this;
+        }
+
+        FormulaBuilder addSubformula(Formula subformula) {
+            subformulas.add(subformula);
+            return this;
+        }
+
+        FormulaType getFormulaType() {
+            return formulaType;
+        }
+
+        Formula build() {
+            if (formulaType == null && subformulas.size() == 1)
+                return subformulas.get(0);
+            else if (formulaType == FormulaType.NEGATION && subformulas.size() == 1)
+                return subformulas.get(0).not();
+            else if (subformulas.size() == 0 && formulaType == null)
+                return null;
+            else if (subformulas.size() > 1) {
+                Formula currentFormula = null;
+
+                for (Formula subformula : subformulas) {
+                    if (currentFormula == null)
+                        currentFormula = subformula;
+                    else if (formulaType == FormulaType.CONJUNCTION)
+                        currentFormula = currentFormula.and(subformula);
+                    else if (formulaType == FormulaType.DISJUNCTION)
+                        currentFormula = currentFormula.or(subformula);
+                    else if (formulaType == FormulaType.IMPLICATION)
+                        currentFormula = currentFormula.imply(subformula);
+                    else if (formulaType == FormulaType.EQUIVALENCE)
+                        currentFormula = currentFormula.equal(subformula);
+                }
+
+                return currentFormula;
+            }
             else
-                return processBrackets(parts);
-        }
-
-        throw new FormulaError(NOT_WELL_FORMED_ERROR);
-    }
-
-    private Formula processBrackets(List<String> parts) {
-        String inBrackets = parts.get(0);
-        return process(inBrackets.substring(1, inBrackets.length() - 1));
-    }
-
-    private Formula processAtomic(List<String> parts) {
-        return new AtomicFormula(parts.get(0).charAt(0));
-    }
-
-    private Formula processNegation(List<String> parts) {
-        return new Negation(process(parts.get(1)));
-    }
-
-    private Formula processBinaryFunction(List<String> parts) {
-        int currentPart = 0;
-        StringBuilder[] subformula = { new StringBuilder(), new StringBuilder() };
-
-        FormulaType formulaType = null;
-
-        for (String part : parts) {
-            switch (part) {
-                case "&":
-                    currentPart++;
-                    formulaType = FormulaType.CONJUNCTION;
-                    break;
-                case "|":
-                    currentPart++;
-                    formulaType = FormulaType.DISJUNCTION;
-                    break;
-                case "-":
-                    currentPart++;
-                    formulaType = FormulaType.IMPLICATION;
-                    break;
-                case "=":
-                    currentPart++;
-                    formulaType = FormulaType.EQUIVALENCE;
-                    break;
-                default:
-                    subformula[currentPart].append(part);
-                    break;
-            }
-        }
-
-        if (formulaType == null)
-            throw new FormulaError("No type of formula detected!");
-
-        switch (formulaType) {
-            case CONJUNCTION:
-                return new Conjunction(process(subformula[0].toString()), process(subformula[1].toString()));
-            case DISJUNCTION:
-                return new Disjunction(process(subformula[0].toString()), process(subformula[1].toString()));
-            case IMPLICATION:
-                return new Implication(process(subformula[0].toString()), process(subformula[1].toString()));
-            case EQUIVALENCE:
-                return new Equivalence(process(subformula[0].toString()), process(subformula[1].toString()));
-            default:
-                throw new FormulaError("No type of formula detected!");
+                throw new FormulaError(NOT_WELL_FORMED_ERROR);
         }
     }
 }

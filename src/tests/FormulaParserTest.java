@@ -74,6 +74,13 @@ public class FormulaParserTest {
         throw new Error("This formula should have failed.");
     }
 
+
+    @Test
+    public void testDroppingParentheses() {
+        if (!testFormula("A & B & C & D").equals(new AtomicFormula('A').and(new AtomicFormula('B')).and(new AtomicFormula('C')).and(new AtomicFormula('D'))))
+            throw new Error("Error during parsing formula with dropped parentheses");
+    }
+
     private Formula testFormula(String formula) {
         FormulaParser parser = new FormulaParser(formula);
         return parser.getFormula();
